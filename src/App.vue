@@ -1,28 +1,46 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <v-app>
+    <v-app-bar
+      app
+      color="primary"
+      dark
+      elevate-on-scroll
+    >
+        <v-toolbar-title>Collapsing Bar</v-toolbar-title>
+      <v-spacer></v-spacer>
+    </v-app-bar>
+    <v-main>
+      <v-container fluid>
+        <BotUi/>
+        <v-sheet
+            id="scrolling-techniques-7"
+            class="overflow-y-auto"
+            max-height="600"
+        >
+          <v-container style="height: 1500px;">
+          </v-container>
+        </v-sheet>
+      </v-container>
+    </v-main>
+    <v-footer app>
+      <!-- -->
+      <h1>hello </h1>
+    </v-footer>
+  </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import BotUi from './components/BotUi';
 
 export default {
   name: 'App',
-  components: {
-    HelloWorld
-  }
-}
-</script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+  components: {
+    BotUi,
+  },
+
+  data: () => ({
+    //
+  }),
+};
+</script>
