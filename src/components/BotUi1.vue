@@ -1,25 +1,15 @@
 <template>
   <div class="botui botui-container" v-botui-container>
     <div class="botui-messages-container">
-      <div v-for="(msg,index) in messages" :key="index" class="botui-message"
-           :class="msg.cssClass" v-botui-scroll v-bind="msg.attributes">
+      <div v-for="(msg,index) in messages" :key='index' class="botui-message"
+           :class="[{human: msg.human, bot: !msg.human}, msg.cssClass]" v-botui-scroll>
         <transition name="slide-fade">
-          <div v-if="msg.visible">
-            <div v-if="msg.photo && !msg.loading"
-                 :class="['profil', 'profile', {human: msg.human,'agent': !msg.human}]">
-              <img :src="msg.photo" :class="[{human: msg.human, 'agent':!msg.human}]">
-            </div>
-            <div :class="[{human: msg.human, 'botui-message-content': true}, msg.type]">
-              <span v-if="msg.type=='text'" v-text="msg.content" v-botui-markdown></span>
-              <span v-if="msg.type=='html'" v-html="msg.content"></span>
-              <iframe v-if="msg.type=='embed'" :src="msg.content" frameborder="0" allowfullscreen></iframe>
-            </div>
+          <div v-if="msg.visible" :class="[{human: msg.human, 'botui-message-content': true}, msg.type]">
+            <span v-if="msg.type == 'text'" v-text="msg.content" v-botui-markdown></span>
+            <iframe v-if="msg.type == 'embed'" :src="msg.content" frameborder="0" allowfullscreen
+                    scrolling="no"></iframe>
           </div>
         </transition>
-        <div v-if="msg.photo && msg.loading && !msg.human"
-             :class="['profil', 'profile', {human: msg.human,'agent': !msg.human}]">
-          <img :src="msg.photo" :class="[{human: msg.human, 'agent':!msg.human}]">
-        </div>
         <div v-if="msg.loading" class="botui-message-content loading">
           <i class="dot"></i>
           <i class="dot"></i>
@@ -30,78 +20,78 @@
     <div class="botui-actions-container">
       <transition name="slide-fade">
         <div v-if="action.show" v-botui-scroll>
-          <form v-if="action.type=='text'" class="botui-actions-text"
+          <form v-if="action.type == 'text'" class="botui-actions-text"
                 @submit.prevent="handle_action_text()" :class="action.cssClass">
-            {{action}}
-            <i v-if="action.text.icon" class="botui-icon botui-action-text-icon fa"
-               :class="'fa-' + action.text.icon"></i>
-            <input ref="input" :type="action.text.sub_type"
-                   v-model="action.text.value" class="botui-actions-text-input"
-                   :placeholder="action.text.placeholder" :size="action.text.size" :value="action.text.value"
-                   :class="action.text.cssClass" required v-focus/>
-            <button type="submit" :class="{'botui-actions-buttons-button':
-						!!action.text.button, 'botui-actions-text-submit': !action.text.button}">
-              <i v-if="action.text.button && action.text.button.icon" class="botui-icon
-							botui-action-button-icon fa" :class="'fa-' + action.text.button.icon"></i>
+            <i v-if="action.text.icon" class="botui-icon botui-action-text-icon fa" :class="'fa-' + action.text.icon"></i>
+            <input ref="input" :type="action.text.sub_type" accept="image/*" capture="camera"
+                   v-model="action.text.value" class="botui-actions-text-input" :placeholder="action.text.placeholder"
+                   :size="action.text.size" :class="action.text.cssClass" required v-focus/>
+            <button type="submit"
+                    :class="{'botui-actions-buttons-button': !!action.text.button, 'botui-actions-text-submit': !action.text.button}">
+              <i v-if="action.text.button && action.text.button.icon" class="botui-icon botui-action-button-icon fa"
+                 :class="'fa-' + action.text.button.icon"></i>
               <span>{{ (action.text.button && action.text.button.label) || 'Go' }}</span>
             </button>
           </form>
-          <form v-if="action.type=='select'" class="botui-actions-select" @submit.prevent="handle_action_select()"
+          <form v-if="action.type == 'select'" class="botui-actions-select" @submit.prevent="handle_action_select()"
                 :class="action.cssClass">
-            <i v-if="action.select.icon"
-               class="botui-icon botui-action-select-icon fa"
-               :class="'fa-' + action.select.icon"></i>
-            <v-select v-if="action.select.searchselect && !action.select.multipleselect"
-                      v-model="action.select.value" :value="action.select.value"
-                      :placeholder="action.select.placeholder" class="botui-actions-text-searchselect"
-                      :label="action.select.label" :options="action.select.options"></v-select>
+            <i v-if="action.select.icon" class="botui-icon botui-action-select-icon fa"
+               :class="'fa-' + action.select.icon">
+            </i>
+            <v-select v-if="action.select.searchselect && !action.select.multipleselect" v-model="action.select.value"
+                      :value="action.select.value" :placeholder="action.select.placeholder"
+                      class="botui-actions-text-searchselect" :label="action.select.label"
+                      :options="action.select.options"></v-select>
             <v-select v-else-if="action.select.searchselect && action.select.multipleselect" multiple
                       v-model="action.select.value" :value="action.select.value"
                       :placeholder="action.select.placeholder" class="botui-actions-text-searchselect"
                       :label="action.select.label" :options="action.select.options"></v-select>
             <select v-else v-model="action.select.value" class="botui-actions-text-select"
-                    :placeholder="action.select.placeholder" :size="action.select.size"
-                    :class="action.select.cssClass" required v-focus>
-              <option v-for="(option,index) in action.select.options" :key="index" :class="action.select.optionClass"
-                      v-bind:value="option.value" :disabled="(option.value=='')?true:false"
-                      :selected="(action.select.value==option.value)?'selected':''"> {{ option.text }}
+                    :placeholder="action.select.placeholder" :size="action.select.size" :class="action.select.cssClass"
+                    required v-focus>
+              <option v-for="(option,index) in action.select.options" :key='index' :class="action.select.optionClass"
+                      v-bind:value="option.value" :disabled="(option.value == '')?true:false"
+                      :selected="(action.select.value == option.value)?'selected':''">
+                {{ option.text }}
               </option>
             </select>
-            <button type="submit" :class="{'botui-actions-buttons-button':
-						!!action.select.button, 'botui-actions-select-submit': !action.select.button}">
-              <i v-if="action.select.button && action.select.button.icon" class="botui-icon
-							botui-action-button-icon fa" :class="'fa-' + action.select.button.icon"></i>
+            <button type="submit"
+                    :class="{'botui-actions-buttons-button': !!action.select.button, 'botui-actions-select-submit': !action.select.button}">
+              <i v-if="action.select.button && action.select.button.icon" class="botui-icon botui-action-button-icon fa"
+                 :class="'fa-' + action.select.button.icon"></i>
               <span>{{ (action.select.button && action.select.button.label) || 'Ok' }}</span>
             </button>
           </form>
-          <div v-if="action.type=='button'" class="botui-actions-buttons" :class="action.cssClass">
-            <button type="button" :class="button.cssClass" class="botui-actions-buttons-button"
-                    v-botui-scroll v-for="(button,index) in action.button.buttons" :key="index"
-                    @click="handle_action_button(button)"><i v-if="button.icon" class="botui-icon
-							botui-action-button-icon fa" :class="'fa-' + button.icon"></i> {{ button.text }}
+          <div v-if="action.type == 'button'" class="botui-actions-buttons" :class="action.cssClass">
+            <button type="button" :class="[button.icon ? 'botui-actions-buttons-button-icon' : '', button.cssClass]"
+                    class="botui-actions-buttons-button" v-for="(button,index) in action.button.buttons"
+                    @click="handle_action_button(button)" :key='index'
+                    autofocus>
+              <i v-if="button.icon" class="botui-icon botui-action-button-icon fa" :class="'fa-' + button.icon"
+                 :style="'background-image:url('+button.icon+')'"></i>
+              {{ button.text }}
             </button>
           </div>
-          <form v-if="action.type=='buttontext'" class="botui-actions-text"
+          <form v-if="action.type == 'buttontext'" class="botui-actions-text"
                 @submit.prevent="handle_action_text()" :class="action.cssClass">
-            <i v-if="action.text.icon" class="botui-icon botui-action-text-icon fa"
+            <i v-if="action.text.icon"
+               class="botui-icon botui-action-text-icon fa"
                :class="'fa-' + action.text.icon"></i>
-            <input
-                type="text" ref="input" v-model="action.text.value"
-                class="botui-actions-text-input" :placeholder="action.text.placeholder"
-                :size="action.text.size" :class="action.text.cssClass" required
-                v-focus/>
-            <button type="submit" :class="{'botui-actions-buttons-button':
-						!!action.text.button, 'botui-actions-text-submit': !action.text.button}">
-              <i v-if="action.text.button && action.text.button.icon" class="botui-icon
-							botui-action-button-icon fa" :class="'fa-' + action.text.button.icon"></i>
+            <input ref="input" :type="action.text.sub_type"
+                   v-model="action.text.value" class="botui-actions-text-input" :placeholder="action.text.placeholder"
+                   :size="action.text.size" :class="action.text.cssClass" required v-focus/>
+            <button type="submit"
+                    :class="{'botui-actions-buttons-button': !!action.text.button, 'botui-actions-text-submit': !action.text.button}">
+              <i v-if="action.text.button && action.text.button.icon" class="botui-icon botui-action-button-icon fa"
+                 :class="'fa-' + action.text.button.icon"></i>
               <span>{{ (action.text.button && action.text.button.label) || 'Go' }}</span>
             </button>
             <div class="botui-actions-buttons" :class="action.cssClass">
               <button type="button" :class="button.cssClass"
-                      class="botui-actions-buttons-button" v-for="(button,index) in
-							action.button.buttons" :key="index" @click="handle_action_button(button)" autofocus>
-                <i v-if="button.icon" class="botui-icon botui-action-button-icon fa" :class="'fa-' +
-								button.icon"></i>
+                      class="botui-actions-buttons-button" v-for="(button,index) in action.button.buttons" :key='index'
+                      @click="handle_action_button(button)"
+                      autofocus>
+                <i v-if="button.icon" class="botui-icon botui-action-button-icon fa" :class="'fa-' + button.icon"></i>
                 {{ button.text }}
               </button>
             </div>
@@ -110,7 +100,6 @@
       </transition>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -118,21 +107,22 @@
 var _instance, // current vue instance.
     _options = {
       debug: false,
-      fontawesome: true,
-      searchselect: true
+      fontawesome: false,
+      searchselect: false
     },
     _container, // the outermost Element. Needed to scroll to bottom, for now.
     _interface = {}, // methods returned by a BotUI() instance.
     _actionResolve,
     _markDownRegex = {
       icon: /!\(([^\)]+)\)/igm, // !(icon)
-      image: /!\[(.*?)\]\((.*?)\)/igm, // ![aleternate text](src)
-      link: /\[([^\[]+)\]\(([^\)]+)\)(\^?)/igm // [text](link) ^ can be added at end to set the target as 'blank'
+      image: /!\[(.*?)\]\((.*?)\)/igm, // ![alternate text](src)
+      link: /\[([^\[]+)\]\(([^\)]+)\)(\^?)/igm, // [text](link) ^ can be added at end to set the target as 'blank'
+      audio: /!\(([^\)]+\.mp3)\)/igm, // !(audio.mp3)
+      emphasis: /\*([^\*]+)\*/igm, // *emphasis*
+      strong: /\*\*([^\*]+)\*\*/igm, // **strong emphasis**
+      br: /\n\n/img,
     },
     _fontAwesome = 'https://use.fontawesome.com/ea731dcb6f.js';
-//_esPromisePollyfill = 'https://cdn.jsdelivr.net/es6-promise/4.1.0/es6-promise.min.js', // mostly for IE
-//_searchselect =  "https://unpkg.com/vue-select@2.4.0/dist/vue-select.js";
-
 
 function _linkReplacer(match, $1, $2, $3) {
   var _target = $3 ? 'blank' : ''; // check if '^' sign is present with link syntax
@@ -141,9 +131,13 @@ function _linkReplacer(match, $1, $2, $3) {
 
 function _parseMarkDown(text) {
   return text
+      .replace(_markDownRegex.audio, "<audio autoplay class='botui-message-content-audio' src='$1'></audio>")
       .replace(_markDownRegex.image, "<img class='botui-message-content-image' src='$2' alt='$1' />")
       .replace(_markDownRegex.icon, "<i class='botui-icon botui-message-content-icon fa fa-$1'></i>")
-      .replace(_markDownRegex.link, _linkReplacer);
+      .replace(_markDownRegex.link, _linkReplacer)
+      .replace(_markDownRegex.emphasis, "<em>$1</em>")
+      .replace(_markDownRegex.strong, "<strong>$1</strong>")
+      .replace(_markDownRegex.br, "<br/><br/>");
 }
 
 function loadScript(src, cb) {
@@ -193,16 +187,7 @@ export default {
   },
   methods: {
     handle_action_button: function (button) {
-      for (var i = 0; i < this.action.button.buttons.length; i++) {
-        if (this.action.button.buttons[i].value == button.value && typeof (this.action.button.buttons[i].event) == 'function') {
-          this.action.button.buttons[i].event(button);
-          if (this.action.button.buttons[i].actionStop) return false;
-          break;
-        }
-      }
-
       _handleAction(button.text);
-
       var defaultActionObj = {
         type: 'button',
         text: button.text,
@@ -210,7 +195,7 @@ export default {
       };
 
       for (var eachProperty in button) {
-        if (Object.prototype.hasOwnProperty.call(button, eachProperty)) {
+        if (Object.prototype.hasOwnProperty.call(button, "eachProperty")) {
           if (eachProperty !== 'type' && eachProperty !== 'text' && eachProperty !== 'value') {
             defaultActionObj[eachProperty] = button[eachProperty];
           }
@@ -256,13 +241,13 @@ export default {
         });
       } else {
         if (!this.action.select.value) return;
-        for (var it = 0; it < this.action.select.options.length; it++) { // Find select title
-          if (this.action.select.options[it].value == this.action.select.value) {
-            _handleAction(this.action.select.options[it].text);
+        for (var j = 0; j < this.action.select.options.length; j++) { // Find select title
+          if (this.action.select.options[j].value == this.action.select.value) {
+            _handleAction(this.action.select.options[j].text);
             _actionResolve({
               type: 'text',
               value: this.action.select.value,
-              text: this.action.select.options[it].text
+              text: this.action.select.options[j].text
             });
           }
         }
@@ -271,13 +256,16 @@ export default {
   },
   directives: {
     'botui-markdown': function (el, binding) {
-      if (binding.value == 'false') return; // v-botui-markdown="false"
+      if (binding.value == false || el.getAttribute('botui-markdown-done')) return; // v-botui-markdown="false"
       el.innerHTML = _parseMarkDown(el.textContent);
+      el.setAttribute('botui-markdown-done', true); // mark the node as already parsed
     },
     'botui-scroll': {
-      inserted: function (el) {
+      inserted: function () {
         _container.scrollTop = _container.scrollHeight;
-        el.scrollIntoView(true);
+        setTimeout(() => {
+          _container.scrollTop = _container.scrollHeight;
+        }, 100);
       }
     },
     'focus': {
@@ -364,7 +352,7 @@ _interface.message = {
 
 function mergeAtoB(objA, objB) {
   for (var prop in objA) {
-    if (!objB.hasOwnProperty.call(objB, prop)) {
+    if (!Object.prototype.hasOwnProperty.call(objB, "prop")) {
       objB[prop] = objA[prop];
     }
   }
@@ -376,20 +364,19 @@ function _checkAction(_opts) {
   }
 }
 
-
 function _showActions(_opts) {
+
   _checkAction(_opts);
+
   mergeAtoB({
     type: 'text',
     cssClass: '',
-    attributes: {},
     autoHide: true,
     addMessage: true
   }, _opts);
 
   _instance.action.type = _opts.type;
   _instance.action.cssClass = _opts.cssClass;
-  _instance.action.attributes = _opts.attributes;
   _instance.action.autoHide = _opts.autoHide;
   _instance.action.addMessage = _opts.addMessage;
 
@@ -423,7 +410,7 @@ _interface.action = {
     _opts.type = 'select';
     _opts.action.label = _opts.action.label || 'text';
     _opts.action.value = _opts.action.value || '';
-    _opts.action.searchselect = typeof _opts.action.searchselect !== 'undefined' ? _opts.action.searchselect : _options.searchselect;
+    _opts.action.searchselect = _opts.action.searchselect || _options.searchselect;
     _opts.action.multipleselect = _opts.action.multipleselect || false;
     if (_opts.action.searchselect && typeof (_opts.action.value) == 'string') {
       if (!_opts.action.multipleselect) {
@@ -435,10 +422,10 @@ _interface.action = {
       } else {
         var vals = _opts.action.value.split(',');
         _opts.action.value = new Array();
-        for (var it = 0; it < _opts.action.options.length; it++) { // Find object
+        for (var k = 0; k < _opts.action.options.length; k++) { // Find object
           for (var j = 0; j < vals.length; j++) { // Search values
-            if (_opts.action.options[it].value == vals[j]) {
-              _opts.action.value.push(_opts.action.options[it]);
+            if (_opts.action.options[k].value == vals[j]) {
+              _opts.action.value.push(_opts.action.options[k]);
             }
           }
         }
@@ -465,7 +452,6 @@ if (_options.fontawesome) {
 }
 
 export var botui = _interface;
-
 </script>
 
 <style lang="scss">
