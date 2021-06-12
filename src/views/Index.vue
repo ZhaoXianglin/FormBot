@@ -27,6 +27,18 @@
           </ul>
         </v-card-text>
       </v-card>
+      <v-row class="mt-2 mb-4">
+        <v-col>
+          <v-btn
+              color="primary"
+              elevation="2"
+              block
+              @click="next"
+          >
+            Let's start
+          </v-btn>
+        </v-col>
+      </v-row>
       <v-dialog persistent
           v-model="dialog"
       >
@@ -67,6 +79,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
     </v-container>
   </v-main>
 </template>
@@ -77,6 +90,13 @@ export default {
   data: function (){
     return{
       dialog:true,
+    }
+  },
+  methods:{
+    next:function(){
+      this.$router.replace('/chatbot').catch((err)=>{
+        console.log(err.message);
+      });
     }
   }
 }
