@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "echarts": "^4.9.0",
+    "v-charts": "^1.19.0",
     "vue": "^2.6.11",
     "vue-router": "^3.5.1",
     "vuetify": "^2.4.0"

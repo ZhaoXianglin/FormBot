@@ -94,7 +94,7 @@ export default {
   },
   methods:{
     next:function(){
-      this.$router.replace('/chatbot').catch((err)=>{
+      this.$router.replace('/chatbot/1').catch((err)=>{
         console.log(err.message);
       });
     }

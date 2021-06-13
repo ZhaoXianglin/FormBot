@@ -19,7 +19,7 @@ const router = new VueRouter({
             component: About,
         },
         {
-            path: "/chatbot",
+            path: "/chatbot/:type",
             component: Chatbot,
         },
         {
