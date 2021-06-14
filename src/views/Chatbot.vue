@@ -61,7 +61,30 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <v-dialog
+              v-model="cookiedialog"
+              persistent
+          >
+            <v-card>
+              <v-card-title>Error</v-card-title>
+            <v-card-text>
+              Please read the "Consent Statement" first!
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                  color="primary"
+                  text
+                  @click="goindex"
+              >
+                OK
+              </v-btn>
+            </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-row>
+
         <v-bottom-sheet
             v-model="scoresheet"
         >
@@ -82,7 +105,6 @@
                 </v-btn>
               </v-card-actions>
             </v-card>
-
           </v-sheet>
         </v-bottom-sheet>
       </v-container>
@@ -120,6 +142,7 @@
 import BotUi from "../components/BotUi";
 // 对象引入
 import {botui} from '../components/BotUi';
+import { instance } from '../network/request';
 
 export default {
   name: 'Chatbot',
@@ -128,6 +151,8 @@ export default {
   },
   data: function () {
     return {
+      //是否设置cookie
+      cookiedialog:false,
       //屏幕宽度
       screenWidth: document.body.clientWidth+'px',
       chartSettings:{
@@ -269,9 +294,20 @@ export default {
         that.screenWidth = window.screenWidth+'px'
       })()
     }
-    this.chatstart();
+    if (this.$cookies.get('sid')){
+      this.chatstart();
+    }else {
+      this.cookiedialog = true;
+    }
   },
   methods: {
+    //回到首页
+    goindex: function(){
+      this.cookiedialog = false;
+      this.$router.replace('/index/').catch((err)=>{
+        console.log(err.message);
+      });
+    },
     chatstart: function () {
       botui.message.bot({
         loading: true,
@@ -281,7 +317,7 @@ export default {
         botui.message.bot({
           loading: true,
           delay: 500,
-          content: "Please first introduce yourself in two to three sentences." + this.items,
+          content: "Please first introduce yourself in two to three sentences.",
         });
         this.msgStatus = false;
       });
@@ -290,15 +326,24 @@ export default {
       botui.message.human({
         content: this.userMessage,
       });
-      this.userMessage = '';
-      this.msgStatus = true;
       if (this.msgStep === 0) {
-        //继续下一步，心情选择
-        this.moodselect();
+        //自我介绍
+        instance.post('/self',{
+          'id': this.$cookies.get("id"),
+          'sid':this.$cookies.get("sid"),
+          'intro':this.userMessage,
+          'itime':new Date().getTime(),
+        }).then((response) => {
+          console.log(response.data);
+        }).then(() =>{
+          //继续下一步，心情选择
+          this.moodselect();
+        })
       } else if (this.msgStep > 0 && this.msgStep < 10) {
         this.openended();
       }
-
+      this.userMessage = '';
+      this.msgStatus = true;
     },
     moodselect: function () {
       botui.message.bot({
@@ -343,7 +388,22 @@ export default {
           ]
         }).then((res) => {
           console.log(res);
-          this.askloneliness();
+          instance.post('/mood',{
+            'id': this.$cookies.get("id"),
+            'sid':this.$cookies.get("sid"),
+            'mood':res.value,
+            'mtime':new Date().getTime(),
+          }).then((response) => {
+            console.log(response.data);
+          }).then(() =>{
+            //继续下一步，孤独量表
+            if (this.$route.params.type === '0'){
+              this.openended();
+            }else{
+              this.askloneliness();
+            }
+          })
+
         });
       });
     },
@@ -462,19 +522,23 @@ export default {
           break;
       }
     },
-    openended: function () {
-      this.$refs.form.validate();
+    formvalid: function () {
       console.log(this.$refs.form.validate());
-      // this.ucladialog = false;
-      // this.msgStatus = true;
-      // botui.message.bot({
-      //   loading: true,
-      //   delay: 600,
-      //   content: this.opdquestions[this.msgStep]
-      // }).then(() => {
-      //   this.msgStatus = false;
-      //   this.msgStep += 1;
-      // });
+      if (this.$refs.form.validate()){
+        this.ucladialog = false;
+        this.openended();
+      }
+    },
+    openended: function () {
+      this.msgStatus = true;
+      botui.message.bot({
+        loading: true,
+        delay: 600,
+        content: this.opdquestions[this.msgStep]
+      }).then(() => {
+        this.msgStatus = false;
+        this.msgStep += 1;
+      });
     }
   }
 }

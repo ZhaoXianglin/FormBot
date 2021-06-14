@@ -85,6 +85,7 @@
 </template>
 
 <script>
+import { instance } from '../network/request';
 export default {
   name: "Index",
   data: function (){
@@ -94,9 +95,23 @@ export default {
   },
   methods:{
     next:function(){
-      this.$router.replace('/chatbot/1').catch((err)=>{
-        console.log(err.message);
-      });
+      let ts = new Date().getTime();
+      instance.post('/add',{'ts': ts}).then((response) => {
+        if (response.data['sid'] != null){
+          //设置一个cookie 2小时过期
+          this.$cookies.set('sid',response.data['sid'],'2h');
+          this.$cookies.set('id',response.data['id'],'2h');
+          let gotype = response.data['id'] % 7;
+          console.log(gotype)
+          this.$router.replace('/chatbot/'+gotype).catch((err)=>{
+            console.log(err.message);
+          });
+        }else{
+          console.log("error")
+          alert("Error, Please try again later");
+        }
+        console.log(response.data)
+      })
     }
   }
 }
