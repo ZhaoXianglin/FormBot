@@ -17,7 +17,6 @@
                   <v-row>
                     <v-form
                         ref="form"
-                        v-model="valid"
                         lazy-validation
                     >
                       <v-col cols="12" v-for="(q,index) in uclaselectquestions" :key="index">
@@ -217,14 +216,20 @@
     <v-footer app color="white" padless>
       <v-row no-gutters>
         <v-col cols="9" sm="10" lg="11">
-          <v-textarea
-              label="Write here"
-              auto-grow
-              outlined
-              rows="1"
-              :disabled="msgStatus"
-              v-model="userMessage"
-          ></v-textarea>
+          <v-form
+              v-model="valid"
+              lazy-validation
+              ref="send">
+            <v-textarea
+                label="Write here"
+                auto-grow
+                outlined
+                rows="1"
+                :disabled="msgStatus"
+                v-model="userMessage"
+                :rules="[v => (v || '' ).length >= 2 || 'Description must be more']"
+            ></v-textarea>
+          </v-form>
         </v-col>
         <v-col cols="3" sm="2" lg="1" class="d-flex align-start">
           <v-btn style="height:56px;bottom:0;" block color="info" :disabled=msgStatus @click="msgsend">
@@ -322,7 +327,7 @@ export default {
         'How often do you feel that there are people you can turn to?'
       ],
       //表单回答的结果
-      ucla20ans:['','','','','','','','','','','','','','','','','','','',''],
+      ucla20ans: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
       //表单中用到的问题
       uclaselectquestions: [],
       //ucla3中的用到的问题序号
@@ -446,60 +451,68 @@ export default {
           content: "Please first introduce yourself in two to three sentences.",
         });
         this.msgStatus = false;
+        this.valid = true;
       });
     },
     //用户发送信息
     msgsend: function () {
-      console.log("start strp:" + this.msgStep);
-      botui.message.human({
-        content: this.userMessage,
-      });
-      if (this.msgStep === 0) {
-        //自我介绍
-        instance.post('/self', {
-          'id': this.$cookies.get("id"),
-          'sid': this.$cookies.get("sid"),
-          'intro': this.userMessage,
-          'itime': new Date().getTime(),
-        }).then((response) => {
-          console.log(response.data);
-          //继续下一步，心情选择
-          this.userMessage = '';
-          this.msgStatus = true;
-          this.msgStep += 1;
-          console.log('intro:' + this.msgStep);
-          this.moodselect();
-        })
-      } else if (this.msgStep > 0 && this.msgStep <= 17) {
-        //开放域的问题
-        instance.post('/openq', {
-          'id': this.$cookies.get("id"),
-          'sid': this.$cookies.get("sid"),
-          'oitem': 'o' + (this.msgStep - 1),
-          'otime': new Date().getTime(),
-          'content': this.userMessage,
-        }).then((response) => {
-          console.log(response.data);
-          this.userMessage = '';
-          this.msgStatus = true;
-          if (this.msgStep != 17) {
-            this.openended();
-          } else {
-            botui.message.bot({
-              content: "Finished",
-              loading: true,
-              delay: 600,
-            }).then(() => {
-              this.surveydialog = true;
-            })
-          }
+      if (this.$refs.send.validate()) {
+        if(this.check_zh(this.userMessage)){
+          alert("Please answer in English");
+          return;
+        }
+        botui.message.human({
+          content: this.userMessage,
         });
-      } else {
-        this.surveydialog = true;
-        this.userMessage = '';
-        this.msgStatus = true;
+        if (this.msgStep === 0) {
+          //自我介绍
+          instance.post('/self', {
+            'id': this.$cookies.get("id"),
+            'sid': this.$cookies.get("sid"),
+            'intro': this.userMessage,
+            'itime': new Date().getTime(),
+          }).then((response) => {
+            console.log(response.data);
+            //继续下一步，心情选择
+            this.userMessage = '';
+            this.msgStatus = true;
+            this.valid = false;
+            this.msgStep += 1;
+            this.moodselect();
+          })
+        } else if (this.msgStep > 0 && this.msgStep <= 17) {
+          //开放域的问题
+          instance.post('/openq', {
+            'id': this.$cookies.get("id"),
+            'sid': this.$cookies.get("sid"),
+            'oitem': 'o' + (this.msgStep - 1),
+            'otime': new Date().getTime(),
+            'content': this.userMessage,
+          }).then((response) => {
+            console.log(response.data);
+            this.userMessage = '';
+            this.msgStatus = true;
+            this.valid = false;
+            if (this.msgStep != 17) {
+              this.openended();
+            } else {
+              botui.message.bot({
+                content: "Finished",
+                loading: true,
+                delay: 600,
+              }).then(() => {
+                this.surveydialog = true;
+              })
+            }
+          });
+        } else {
+          this.surveydialog = true;
+          this.userMessage = '';
+          this.msgStatus = true;
+          this.valid = false;
+        }
+        console.log("end strp:" + this.msgStep);
       }
-      console.log("end strp:" + this.msgStep);
     },
     //选择心情
     moodselect: function () {
@@ -710,24 +723,26 @@ export default {
     },
     openended: function () {
       this.msgStatus = true;
+      this.valid = false;
       botui.message.bot({
         loading: true,
         delay: 600,
         content: this.opdquestions[this.msgStep - 1]
       }).then(() => {
         this.msgStatus = false;
+        this.valid = true;
+        this.$refs.send.resetValidation();
       });
       this.msgStep += 1;
     },
     subucla: function () {
-      console.log(this.$refs.form.validate());
       if (this.$refs.form.validate()) {
         instance.post('/uclaf', {
           'id': this.$cookies.get("id"),
           'sid': this.$cookies.get("sid"),
           'content': this.ucla20ans,
           'ctime': new Date().getTime(),
-        }).then((res)=>{
+        }).then((res) => {
           console.log(res.data);
           this.uclascore = res.data['score'];
           this.chartData.rows = [{type: 'score', value: this.uclascore}];
@@ -757,6 +772,10 @@ export default {
       } else {
         alert("Some items are missing, please check again");
       }
+    },
+    check_zh: function(str){
+      const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
+      return reg.test(str);
     }
   }
 }
