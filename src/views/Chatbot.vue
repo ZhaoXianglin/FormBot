@@ -493,7 +493,8 @@ export default {
             this.userMessage = '';
             this.msgStatus = true;
             this.valid = false;
-            if (this.msgStep != 17) {
+            if (this.msgStep !== 17) {
+              this.randomans();
               this.openended();
             } else {
               botui.message.bot({
@@ -776,6 +777,15 @@ export default {
     check_zh: function(str){
       const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
       return reg.test(str);
+    },
+    randomans: function(){
+      const ans = ['Thanks for letting me know.','Okay',"I understand",'Ok.','Got it.',
+        'I see.','Thank you for your thoughtful input.','❤️','👌','Thank you very much for sharing.'];
+      botui.message.bot({
+        content: ans[Math.round(Math.random()*10)],
+        delay: 300,
+        loading: true,
+      })
     }
   }
 }
