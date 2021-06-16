@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const instance = axios.create({
-        baseURL: "https://formbotserver.herokuapp.com/",
+        baseURL: "https://formbotserver.herokuapp.com",
         timeout: 5000,
     })
 
