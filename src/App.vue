@@ -5,9 +5,8 @@
           app
           color="primary"
           dark
-          elevate-on-scroll
       >
-        <v-toolbar-title>Chatbot</v-toolbar-title>
+        <v-toolbar-title><img src="../public/percy.png" style=" width:36px;vertical-align:middle" alt=""> Percy</v-toolbar-title>
         <v-spacer></v-spacer>
       </v-app-bar>
       <router-view></router-view>

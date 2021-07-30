@@ -10,22 +10,40 @@
           >
             <v-card>
               <v-card-title>
-                <span class="text-h5">Loneliness Scale</span>
+                <span class="text-h5">Loneliness Scale:</span>
               </v-card-title>
               <v-card-text>
                 <v-container>
-                  <v-row>
                     <v-form
                         ref="form"
                         lazy-validation
                     >
                       <v-col cols="12" v-for="(q,index) in uclaselectquestions" :key="index">
                         <span>{{ index + 1 }}.{{ q }}</span>
-                        <v-radio-group
-                            column
-                            required
-                            :rules="[v => !!v || 'Item is required']"
-                            v-model="ucla20ans[index]"
+                        <v-radio-group v-if="items === 3"
+                                       column
+                                       required
+                                       :rules="[v => !!v || 'Item is required']"
+                                       v-model="ucla20ans[index]"
+                        >
+                          <v-radio
+                              label="Hardly Ever"
+                              value="Hardly Ever"
+                          ></v-radio>
+                          <v-radio
+                              label="Some of the Time"
+                              value="Some of the Time"
+                          ></v-radio>
+                          <v-radio
+                              label="Often"
+                              value="Often"
+                          ></v-radio>
+                        </v-radio-group>
+                        <v-radio-group v-else
+                                       column
+                                       required
+                                       :rules="[v => !!v || 'Item is required']"
+                                       v-model="ucla20ans[index]"
                         >
                           <v-radio
                               label="Never"
@@ -45,20 +63,16 @@
                           ></v-radio>
                         </v-radio-group>
                       </v-col>
+                      <v-btn
+                          color="primary"
+                          block
+                          @click="subucla"
+                      >
+                        Submit
+                      </v-btn>
                     </v-form>
-                  </v-row>
                 </v-container>
               </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="subucla"
-                >
-                  Submit
-                </v-btn>
-              </v-card-actions>
             </v-card>
           </v-dialog>
           <v-dialog
@@ -83,111 +97,7 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <v-dialog
-              v-model="surveydialog"
-              fullscreen
-              hide-overlay
-              transition="dialog-bottom-transition"
-          >
-            <v-card>
-              <v-toolbar
-                  dark
-                  color="primary"
-              >
-                <v-toolbar-title>Survey</v-toolbar-title>
-                <v-spacer></v-spacer>
-              </v-toolbar>
-              <v-form ref="personalinfo">
-                <v-container>
-                  <p></p>
-                  <v-row>
-                    <v-col
-                        cols="12"
-                        md="6"
-                    >
-                      <p>Please indicate your age range.</p>
-                    </v-col>
-                    <v-col
-                        class="d-flex"
-                        cols="12"
-                    >
-                      <v-select
-                          v-model="age"
-                          :items="agesitems"
-                          filled
-                          label="Age range"
-                          required
-                          :rules="[v => !!v || 'Item is required']"
-                      ></v-select>
-                    </v-col>
-                    <v-col
-                        cols="12"
-                    >
-                      <p>Please indicate your gender.</p>
-                      <v-radio-group v-model="gender"
-                                     required
-                                     :rules="[v => !!v || 'Item is required']"
-                      >
-                        <v-radio
-                            label="Female"
-                            value="Female"
-                        ></v-radio>
-                        <v-radio
-                            label="Male"
-                            value="Male"
-                        ></v-radio>
-                        <v-radio
-                            label="Other"
-                            value="Other"
-                        ></v-radio>
-                      </v-radio-group>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col col="12">
-                      <p>I see myself as someone who …</p>
-                      <ul>
-                        <li>(1) Disagree strongly</li>
-                        <li>(2) Disagree a little</li>
-                        <li>(3) Neither agree nor disagree</li>
-                        <li>(4) Disagree strongly</li>
-                        <li>(5) Disagree strongly</li>
-                      </ul>
-                    </v-col>
-                    <v-col cols="12" v-for="(q,index) in personalq" :key="index">
-                      <p>{{ index + 1 }}.{{ q }}. - <span
-                          class="font-weight-bold">{{ ticksLabels[personality[index]] }} </span></p>
-                      <v-slider
-                          thumb-size="20"
-                          thumb-label="always"
-                          max="4"
-                          step="1"
-                          ticks="always"
-                          tick-size="4"
-                          v-model="personality[index]"
-                      >
-                        <template v-slot:thumb-label="{ value }">
-                          ({{ value + 1 }})
-                        </template>
-                      </v-slider>
-                    </v-col>
-                    <v-col col="12">
-                      <v-btn class="mb-6" block
-                             color="error"
-                             elevation="2"
-                             @click="subuserinfo"
-                      >
-                        Submit
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-
-                </v-container>
-              </v-form>
-            </v-card>
-          </v-dialog>
         </v-row>
-
         <v-bottom-sheet
             v-model="scoresheet"
             persistent
@@ -196,12 +106,19 @@
             <v-card
                 elevation="2"
             >
-              <v-card-title>Loneliness Score:</v-card-title>
-              <ve-gauge :data="chartData" :settings="chartSettings" :width="screenWidth"></ve-gauge>
+              <v-card-title>Your Loneliness Score: {{ uclascore }}</v-card-title>
+              <ve-gauge style="margin-top:-50px" :data="chartData" :settings="chartSettings" :width="screenWidth">
+              </ve-gauge>
+              <v-card-text style="padding:0 16px;margin-top:-60px">
+                <p class="font-weight-regular text-justify">{{ uclatips }}</p>
+                <p style="font-size:10px;line-height:16px;margin-bottom:5px;color:#BDBDBD" class="text-left">{{
+                    uclaref
+                  }}</p>
+              </v-card-text>
               <v-card-actions>
                 <v-btn
-                    class="mt-6"
-                    color="error"
+                    class="mb-6"
+                    color="primary"
                     block
                     @click="closescore"
                 >
@@ -211,29 +128,45 @@
             </v-card>
           </v-sheet>
         </v-bottom-sheet>
+        <v-snackbar
+            v-model="snackbar"
+        >
+          {{ snackbartext }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn
+                color="pink"
+                text
+                v-bind="attrs"
+                @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
       </v-container>
     </v-main>
-    <v-footer app color="white" padless>
+    <v-footer app color="white">
       <v-row no-gutters>
         <v-col cols="9" sm="10" lg="11">
           <v-form
-              v-model="valid"
               lazy-validation
               ref="send">
             <v-textarea
-                label="Write here"
+                label="Type here"
                 auto-grow
                 outlined
                 rows="1"
                 :disabled="msgStatus"
                 v-model="userMessage"
-                :rules="[v => (v || '' ).length >= 2 || 'Description must be more']"
+                :rules="[rules.language, rules.length]"
+                @keydown.enter="enter_send"
             ></v-textarea>
           </v-form>
         </v-col>
         <v-col cols="3" sm="2" lg="1" class="d-flex align-start">
-          <v-btn style="height:56px;bottom:0;" block color="info" :disabled=msgStatus @click="msgsend">
-            SEND
+          <v-btn style="height:56px; padding: 0" block color="info" :disabled=msgStatus @click="msgsend">
+            Send
             <v-icon
                 dark
                 right
@@ -261,25 +194,43 @@ export default {
   },
   data: function () {
     return {
-      //用户信息
-      age: '',
-      agesitems: ['< 25 years old', '25-30 years old', '30-35 years old', '35-40 years old', '40-45 years old', '> 45 years old'],
-      gender: '',
-      personality: ['', '', '', '', '', '', '', '', '', ''],
-      ticksLabels: ['Disagree strongly', 'Disagree a little', 'Neither agree nor disagree', 'Agree a little', 'Agree strongly'],
-      personalq: ['…is reserved', '…is generally trusting', '…tends to be lazy', '…is relaxed, handles stress well',
-        '…has few artistic interests', '…is outgoing, sociable', '…tends to find fault with others',
-        '…does a thorough job', '…gets nervous easily', '…has an active imagination'],
-      //采集用户信息dialog
-      surveydialog: false,
+      //表单验证的规则
+      rules: {length: true, language: true},
+      //显示底部提示框
+      snackbar: false,
+      snackbartext: '',
       //是否设置cookie的弹出框
       cookiedialog: false,
       //屏幕宽度
       screenWidth: document.body.clientWidth + 'px',
+      //控制指针颜色
       chartSettings: {
         dataName: {'score': 'Points'},
         labelMap: {'score': 'score'},
-        seriesMap: {'score': {min: 0, max: 80}},
+        seriesMap: {
+          'score': {
+            itemStyle: {
+              color: '#C62828'
+            },
+            min: 0, max: 80,
+            detail: {
+              color: "#000"
+            },
+            axisLine: {
+              lineStyle: {
+                color: [[0.1, '#33691E'], [0.2, '#689F38'], [0.3, '#9CCC65'], [0.4, '#D4E157'], [0.5, '#FFEE58'], [0.6, '#FBC02D'], [0.7, '#FF9100'], [0.8, '#F4511E'], [0.9, '#D84315'], [1, '#BF360C']],
+              }
+            },
+            axisLabel: {
+              textStyle: {
+                fontWeight: 'bolder',
+                color: '#424242',
+                shadowColor: '#EEEEEE',
+                shadowBlur: 10
+              }
+            },
+          }
+        },
       },
       chartData: {
         columns: ['type', 'value'],
@@ -289,8 +240,6 @@ export default {
       },
       // ucla结果 跳出的窗口
       scoresheet: false,
-      //ucla表单验证
-      valid: true,
       //ucla量表有多少项，默认20项
       items: 20,
       //使用的表单模式，1是chatbot，2是form
@@ -338,23 +287,17 @@ export default {
       uclareversearr: [0, 4, 5, 8, 9, 14, 15, 18, 19],
       //ucla 得分
       uclascore: 0,
+      //ucla结果的提示语
+      uclatips: '',
+      uclaref: '',
       opdquestions: [
-        '1. In general, how would you describe your mood?',
-        '2. Could you tell me about any times over the past few months that you’ve been bothered by low feelings [stress, or loneliness]',
-        '3. Could you let me know what happened to make you feel this way?',
-        '4. Can you tell me a little bit about any contact you have with friends or family right now?',
-        '5. Do you consider loneliness to be an issue for you/someone like you?',
-        '6. What do you think could be the main factors that contribute to loneliness?',
-        '7. What would it take for you to feel happier or more at peace?',
-        '8.Think of something, great or small (e.g., food we eat or the place we live in), that you feel happy and grateful for and describe it in a few words.',
-        '9. Is there anything else that you would like to add?',
-        '10. Do you ever find yourself listening to music to try to influence your mood one way or another? ',
-        '11. What do you think of playing music for you when you feel lonely?',
-        '12. What kind of music do you prefer to listen to when you feel lonely?',
-        '13. Would you find it annoying to listen to something upbeat when you are feeling low?',
-        '14. What do you think if I play some songs that you are familiar with when you feel lonely?',
-        '15. What do you think if I play some songs that you are unfamiliar with when you feel lonely?',
-        '16. What do you think of communicating with people who have similar music tastes to you online when you feel lonely?'
+        'In general, how would you describe your current mood?',
+        'What do you think of the influence of COVID-19 pandemic on your study and life?',
+        'Can you tell me a little bit about any contact you have with friends or family recently?',
+        'What have you tried to manage isolation and loneliness during COVID-19?',
+        'What do you think could be the main factors that contribute to loneliness?',
+        'What would it take for you to feel happier or more at peace?',
+        'Think of something, great or small (e.g., food you eat or the place you live in), that you feel happy and grateful for and describe it in a few words.',
       ],
     }
   },
@@ -367,7 +310,9 @@ export default {
           this.uclaselectquestions[i] = this.ucla20questions[this.ucla3array[i]]
         }
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 3, max: 12, splitNumber: 9};
+        this.chartSettings.seriesMap.score.min = 3;
+        this.chartSettings.seriesMap.score.max = 9;
+        this.chartSettings.seriesMap.score.splitNumber = 6;
         break;
       case'2':
         this.items = 3;
@@ -376,7 +321,9 @@ export default {
           this.uclaselectquestions[i] = this.ucla20questions[this.ucla3array[i]]
         }
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 3, max: 12, splitNumber: 9};
+        this.chartSettings.seriesMap.score.min = 3;
+        this.chartSettings.seriesMap.score.max = 9;
+        this.chartSettings.seriesMap.score.splitNumber = 6;
         break;
       case'3':
         this.items = 10;
@@ -385,7 +332,9 @@ export default {
           this.uclaselectquestions[i] = this.ucla20questions[this.ucla10array[i]]
         }
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 10, max: 40, splitNumber: 6};
+        this.chartSettings.seriesMap.score.min = 10;
+        this.chartSettings.seriesMap.score.max = 40;
+        this.chartSettings.seriesMap.score.splitNumber = 6;
         break;
       case'4':
         this.items = 10;
@@ -394,21 +343,27 @@ export default {
           this.uclaselectquestions[i] = this.ucla20questions[this.ucla10array[i]]
         }
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 10, max: 40, splitNumber: 6};
+        this.chartSettings.seriesMap.score.min = 10;
+        this.chartSettings.seriesMap.score.max = 40;
+        this.chartSettings.seriesMap.score.splitNumber = 6;
         break;
       case'5':
         this.items = 20;
         this.formtype = 1;
         this.uclaselectquestions = this.ucla20questions;
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 20, max: 80, splitNumber: 6};
+        this.chartSettings.seriesMap.score.min = 20;
+        this.chartSettings.seriesMap.score.max = 80;
+        this.chartSettings.seriesMap.score.splitNumber = 10;
         break;
       case'6':
         this.items = 20;
         this.formtype = 2;
         //修改坐标轴
-        this.chartSettings.seriesMap.score = {min: 20, max: 80, splitNumber: 6};
         this.uclaselectquestions = this.ucla20questions;
+        this.chartSettings.seriesMap.score.min = 20;
+        this.chartSettings.seriesMap.score.max = 80;
+        this.chartSettings.seriesMap.score.splitNumber = 10;
         break;
       default:
         this.items = 20;
@@ -426,6 +381,9 @@ export default {
     }
     if (this.$cookies.get('sid')) {
       this.chatstart();
+      setTimeout(()=>{   //设置延迟执行
+        window.scrollTo(0 ,0);
+      },10);
     } else {
       this.cookiedialog = true;
     }
@@ -440,219 +398,346 @@ export default {
     },
     //开始聊天
     chatstart: function () {
+      setTimeout(()=>{   //设置延迟执行
+        window.scrollTo(0 ,0);
+      },1601);
       botui.message.bot({
         loading: true,
-        delay: 600,
-        content: "Hello there! I am your mood assistant.😄"
+        delay: 1600,
+        content: "Hi there! I am Percy."
       }).then(() => {
+        setTimeout(()=>{   //设置延迟执行
+          window.scrollTo(0 ,0);
+        },1601);
         botui.message.bot({
           loading: true,
-          delay: 500,
-          content: "Please first introduce yourself in two to three sentences.",
+          delay: 1600,
+          content: "I would like to help you know yourself better through an interview.",
+        }).then(() => {
+          setTimeout(()=>{   //设置延迟执行
+            window.scrollTo(0 ,0);
+          },1601);
+          botui.message.bot({
+            loading: true,
+            delay: 2000,
+            content: "Can you tell me what you are studying at HKBU?",
+          }).then(() => {
+            this.msgStatus = false;
+          });
         });
-        this.msgStatus = false;
-        this.valid = true;
       });
     },
     //用户发送信息
     msgsend: function () {
-      if (this.$refs.send.validate()) {
-        if(this.check_zh(this.userMessage)){
-          alert("Please answer in English");
-          return;
-        }
-        botui.message.human({
-          content: this.userMessage,
-        });
-        if (this.msgStep === 0) {
-          //自我介绍
-          instance.post('/self', {
-            'id': this.$cookies.get("id"),
-            'sid': this.$cookies.get("sid"),
-            'intro': this.userMessage,
-            'itime': new Date().getTime(),
-          }).then((response) => {
-            console.log(response.data);
-            //继续下一步，心情选择
-            this.userMessage = '';
-            this.msgStatus = true;
-            this.valid = false;
-            this.msgStep += 1;
-            this.moodselect();
+      let that = this;
+      that.rules = {
+        length: v => (v || "").length >= 2 || 'Feel free to tell me more',
+        language: v => !/[\u4E00-\u9FA5\uF900-\uFA2D]/.test(v) || "Please type English",
+      };
+      this.$nextTick(() => {
+        if (this.$refs.send.validate()) {
+          // if (that.check_zh(this.userMessage)) {
+          //   that.snackbartext = "Please type English";
+          //   that.snackbar = true;
+          //   return;
+          // }
+          //禁止用户输入
+          that.msgStatus = true;
+          botui.message.human({
+            content: that.userMessage,
+          }).then(function () {
+            botui.message.bot({
+              loading: true,
+            }).then((index) => {
+              if (that.msgStep === 0) {
+                //自我介绍
+                instance.post('/self', {
+                  'id': that.$cookies.get("id"),
+                  'sid': that.$cookies.get("sid"),
+                  'intro': that.userMessage,
+                  'category':that.$route.params.type,
+                  'itime': new Date().getTime(),
+                }).then(() => {
+                  //console.log(response.data);
+                  botui.message.remove(index);
+                  //继续下一步，心情选择
+                  that.rules = {
+                    length: true,
+                    language: true,
+                  };
+                  that.$refs.send.resetValidation();
+                  that.userMessage = '';
+                  that.msgStep += 1;
+                  that.moodselect();
+                }).catch(function (error) {
+                  that.msgStatus = false;
+                  console.log(error);
+                });
+              } else if (that.msgStep > 0 && that.msgStep <= 8) {
+                //开放域的问题
+                instance.post('/openq', {
+                  'id': that.$cookies.get("id"),
+                  'sid': that.$cookies.get("sid"),
+                  'oitem': 'o' + (that.msgStep - 1),
+                  'otime': new Date().getTime(),
+                  'content': that.userMessage,
+                }).then((response) => {
+                  //console.log(response.data);
+                  botui.message.update(index, {
+                    loading: false,
+                    content: response.data['bot'],
+                  });
+                  if (that.msgStep !== 8) {
+                    that.openended();
+                  } else {
+                    //回答完了问题，给建议
+                    that.end_tips()
+                  }
+                }).catch(function (error) {
+                  that.msgStatus = false;
+                  botui.message.update(index,{
+                    loading: false,
+                    content: "Sorry, please try again.",
+                  });
+                  console.log(error);
+                });
+              } else {
+                botui.message.remove(index);
+                that.surveydialog = true;
+                that.userMessage = '';
+              }
+            })
           })
-        } else if (this.msgStep > 0 && this.msgStep <= 17) {
-          //开放域的问题
-          instance.post('/openq', {
-            'id': this.$cookies.get("id"),
-            'sid': this.$cookies.get("sid"),
-            'oitem': 'o' + (this.msgStep - 1),
-            'otime': new Date().getTime(),
-            'content': this.userMessage,
-          }).then((response) => {
-            console.log(response.data);
-            this.userMessage = '';
-            this.msgStatus = true;
-            this.valid = false;
-            if (this.msgStep !== 17) {
-              this.randomans();
-              this.openended();
-            } else {
-              botui.message.bot({
-                content: "Finished",
-                loading: true,
-                delay: 600,
-              }).then(() => {
-                this.surveydialog = true;
-              })
-            }
-          });
-        } else {
-          this.surveydialog = true;
-          this.userMessage = '';
-          this.msgStatus = true;
-          this.valid = false;
+          //console.log("end strp:" + this.msgStep);
         }
-        console.log("end strp:" + this.msgStep);
-      }
+      });
     },
     //选择心情
     moodselect: function () {
+      let that = this;
       botui.message.bot({
         loading: true,
-        delay: 600,
-        content: "how are you feeling?"
+        delay: 1600,
+        content: "I hope you enjoy studying at HKBU."
+      }).then(() => {
+        return botui.message.bot({
+          loading: true,
+          delay: 1600,
+          content: " I know many students feel low during the pandemic of COVID-19."
+        });
+      }).then(() => {
+        return botui.message.bot({
+          loading: true,
+          delay: 1600,
+          content: "How are you feeling now?"
+        });
       }).then(() => {
         botui.action.button({
           action: [
             {
-              text: '😀 Excited',
+              text: 'Excited 😀 ',
               value: 'Excited'
             },
             {
-              text: '😊 Happy',
+              text: 'Happy 😊 ',
               value: 'Happy'
             },
             {
-              text: '☺️ ️Relaxed',
+              text: 'Relaxed 🙂 ',
               value: 'Relaxed'
             },
             {
-              text: '😌️ Calm',
+              text: 'Calm 😌 ',
               value: 'Calm'
             },
             {
-              text: '☹️  Sad',
+              text: 'Sad ☹️',
               value: 'Sad'
             },
             {
-              text: '😔  Depressed',
+              text: 'Depressed 😔 ',
               value: 'Depressed'
             },
             {
-              text: '😭  Upset',
+              text: 'Upset 😭 ',
               value: 'Upset'
             },
             {
-              text: '😨  Nervous',
+              text: 'Nervous 😨 ',
               value: 'Nervous'
             },
           ]
         }).then((res) => {
-          console.log(res);
-          instance.post('/mood', {
-            'id': this.$cookies.get("id"),
-            'sid': this.$cookies.get("sid"),
-            'mood': res.value,
-            'mtime': new Date().getTime(),
-          }).then((response) => {
-            console.log(response.data);
-          }).then(() => {
-            //继续下一步，孤独量表
-            if (this.$route.params.type === '0') {
-              this.openended();
-            } else {
-              this.askloneliness();
-            }
+          //console.log(res);
+          botui.message.bot({
+            loading: true,
+          }).then(function (index) {
+            instance.post('/mood', {
+              'id': that.$cookies.get("id"),
+              'sid': that.$cookies.get("sid"),
+              'mood': res.value,
+              'mtime': new Date().getTime(),
+            }).then(() => {
+              //console.log(response.data);
+              const emotions = ['Relaxed', 'Excited', 'Happy', 'Calm'];
+              let msg = 'Sorry to hear that!';
+              if (emotions.includes(res.value)) {
+                msg = "That is great!";
+              }
+              botui.message.update(index, {
+                content: msg
+              }).then(() => {
+                //继续下一步，孤独量表
+                if (that.$route.params.type === '0') {
+                  botui.message.bot({
+                    loading: true,
+                    delay:1600,
+                    content:'Now I would like to ask you several questions to help you cope with loneliness.',
+                  }).then(()=>{
+                    botui.message.bot({
+                      loading: true,
+                      delay: 1600,
+                      content: 'Please tell me as much as possible about your feelings.'
+                    }).then(()=>{
+                      that.openended();
+                    })
+                  })
+                } else {
+                  that.askloneliness();
+                }
+              })
+            })
           })
-
         });
       });
     },
     //孤独量表的引导语
     askloneliness: function () {
+      let that = this;
       botui.message.bot(
           {
-            delay: 600,
+            delay: 1600,
             loading: true,
-            content: 'Let\'s take a test to learn more about your recent state of mind',
+            content: 'Let\'s take a test to learn more about your recent mood.',
           }
       ).then(() => {
         botui.message.bot(
             {
-              delay: 600,
+              delay: 1600,
               loading: true,
-              content: 'I will ask you ' + this.items + ' questions next, I hope you can answer truthfully',
+              type: 'html',
+              content: 'As many students feel isolated while working from home, let me ask you <span class="font-weight-black">' + this.items + ' questions</span> to learn more about your recent feelings of loneliness.',
             }
         ).then(() => {
-          switch (this.formtype) {
-            case 1:
-              this.uclachat();
-              break;
-            case 2:
-              this.uclaform();
-              break;
-            default:
-              this.uclachat();
-              break;
-          }
+          botui.action.button({
+            action: [{
+              text: " OK",
+              value: 'OK'
+            }]
+          }).then(function () {
+            //给服务器传一个点击时间
+            instance.post('/setltime', {
+              'id': that.$cookies.get("id"),
+              'sid': that.$cookies.get("sid"),
+              'ltime': new Date().getTime(),
+            });
+            switch (that.formtype) {
+              case 1:
+                that.uclachat();
+                break;
+              case 2:
+                that.uclaform();
+                break;
+              default:
+                that.uclachat();
+                break;
+            }
+          })
         })
       });
     },
     //ucla量表的chatbot形式
     uclachat: function () {
       //items有三个值（3，10，20)
-      var data = this;
+      let that = this;
+      let actionbtn = [
+        {
+          text: 'Never',
+          value: 'Never'
+        },
+        {
+          text: 'Rarely',
+          value: 'Rarely'
+        },
+        {
+          text: 'Sometimes',
+          value: 'Sometimes'
+        },
+        {
+          text: 'Always',
+          value: 'Always'
+        },
+      ];
+      if (that.items === 3) {
+        actionbtn = [
+          {
+            text: 'Hardly Ever',
+            value: 'Hardly Ever'
+          },
+          {
+            text: 'Some of the Time',
+            value: 'Some of the Time'
+          },
+          {
+            text: 'Often',
+            value: 'Often'
+          },
+        ];
+      }
+
       botui.message.bot({
         loading: true,
-        delay: 600,
-        content: (data.uclastep + 1) + '. ' + data.uclaselectquestions[data.uclastep],
+        delay: 1600,
+        content: (that.uclastep + 1) + '. ' + that.uclaselectquestions[that.uclastep],
       }).then(function () {
         botui.action.button({
-          action: [
-            {
-              text: 'Never',
-              value: 'Never'
-            },
-            {
-              text: 'Rarely',
-              value: 'Rarely'
-            },
-            {
-              text: 'Sometimes',
-              value: 'Sometimes'
-            },
-            {
-              text: 'Always',
-              value: 'Always'
-            },
-          ]
+          action: actionbtn,
         }).then((res) => {
-          data.getscore(res.text);
-          console.log(data.uclascore);
-          data.uclastep++;
-          if (data.uclastep < data.items) {
-            data.uclachat();
+          that.getscore(res.text);
+          //console.log(that.uclascore);
+          that.uclastep++;
+          if (that.uclastep < that.items) {
+            that.uclachat();
           } else {
             botui.message.bot({
               loading: true,
-              delay: 600,
-              content: 'Thank you for answering all the questions!'
+              delay: 1600,
+              content: 'Thank you for answering all the questions! Let’s see the results of your feelings of loneliness. '
             }).then(() => {
-              data.scoresheet = true;
-              data.chartData.rows = [{type: 'score', value: data.uclascore}]
+              botui.action.button({
+                action: [
+                  { // show only one button
+                    text: 'Results',
+                    value: 'Results'
+                  }
+                ]
+              }).then(() => {
+                //console.log(res);
+                //给服务器传一个分数
+                instance.post('/setscore', {
+                  'id': that.$cookies.get("id"),
+                  'sid': that.$cookies.get("sid"),
+                  'score': that.uclascore,
+                  'rbtime': new Date().getTime(),
+                }).then(() => {
+                  //console.log(response.data);
+                  that.showref();
+                  that.scoresheet = true;
+                  that.chartData.rows = [{type: 'score', value: that.uclascore}]
+                });
+              })
             });
-            console.log("finished");
-            data.uclastep = 0;
+            that.uclastep = 0;
           }
         })
       })
@@ -662,40 +747,35 @@ export default {
       this.ucladialog = true;
     },
     getscore: function (item) {
-      //将结果传到sercer
+      //将结果传到server
+      const item3score = {'Hardly Ever': 1, 'Some of the Time': 2, 'Often': 3};
       const itemscore = {'Never': 1, 'Rarely': 2, 'Sometimes': 3, 'Always': 4};
       const itemrscore = {'Never': 4, 'Rarely': 3, 'Sometimes': 2, 'Always': 1};
-      console.log(item);
+      //console.log(item);
       let citem = '';
       switch (this.items) {
         case 3:
           citem = 'c' + (this.ucla3array[this.uclastep] + 1);
-          if (this.uclareversearr.includes(this.ucla3array[this.uclastep])) {
-            this.uclascore += itemrscore[item]
-            console.log(itemrscore[item])
-          } else {
-            this.uclascore += itemscore[item]
-            console.log(itemscore[item])
-          }
+          this.uclascore += item3score[item]
           break;
         case 10:
           citem = 'c' + (this.ucla10array[this.uclastep] + 1);
           if (this.uclareversearr.includes(this.ucla10array[this.uclastep])) {
             this.uclascore += itemrscore[item]
-            console.log(itemrscore[item])
+            //console.log(itemrscore[item])
           } else {
             this.uclascore += itemscore[item]
-            console.log(itemscore[item])
+            //console.log(itemscore[item])
           }
           break;
         case 20:
           citem = 'c' + (this.uclastep + 1);
           if (this.uclareversearr.includes(this.uclastep)) {
             this.uclascore += itemrscore[item]
-            console.log(itemrscore[item])
+            //console.log(itemrscore[item])
           } else {
             this.uclascore += itemscore[item]
-            console.log(itemscore[item])
+            //console.log(itemscore[item])
           }
           break;
       }
@@ -706,37 +786,68 @@ export default {
         'citem': citem,
         'ctime': new Date().getTime(),
         'content': item,
-      }).then((response) => {
-        console.log(response.data);
+      }).then(() => {
+        //console.log(response.data);
       });
     },
 
     closescore: function () {
-      this.scoresheet = false;
-      botui.message.bot({
-        loading: true,
-        delay: 600,
-        content: "Let me ask you some questions",
+      let that = this;
+      instance.post('/closescore', {
+        'id': this.$cookies.get("id"),
+        'sid': this.$cookies.get("sid"),
+        'ratime': new Date().getTime(),
       }).then(() => {
-        this.openended();
+        this.scoresheet = false;
+        //console.log(response.data);
+        botui.message.bot({
+          loading: true,
+          delay: 3200,
+          content: "I have known your feelings of loneliness. Now I would like to ask you several more specific questions to help you cope with loneliness.",
+        }).then(() => {
+          botui.message.bot({
+            loading: true,
+            delay: 1600,
+            content: " Please tell me as much as possible about your feelings."
+          }).then(()=>{
+            botui.action.button({
+              action: [
+                {'text': 'OK', 'value': "OK"}
+              ]
+            }).then(() => {
+              //console.log(res);
+              //给服务器传一个点击时间
+              instance.post('/setotime', {
+                'id': that.$cookies.get("id"),
+                'sid': that.$cookies.get("sid"),
+                'otime': new Date().getTime(),
+              });
+              this.openended();
+            });
+          });
+        });
       });
-
     },
     openended: function () {
       this.msgStatus = true;
-      this.valid = false;
       botui.message.bot({
         loading: true,
-        delay: 600,
+        delay: 1600,
         content: this.opdquestions[this.msgStep - 1]
       }).then(() => {
         this.msgStatus = false;
-        this.valid = true;
+        this.rules = {
+          length: true,
+          language: true,
+        };
         this.$refs.send.resetValidation();
+        this.userMessage = '';
       });
       this.msgStep += 1;
     },
+    //提交ucla表单
     subucla: function () {
+      let that = this;
       if (this.$refs.form.validate()) {
         instance.post('/uclaf', {
           'id': this.$cookies.get("id"),
@@ -744,53 +855,215 @@ export default {
           'content': this.ucla20ans,
           'ctime': new Date().getTime(),
         }).then((res) => {
-          console.log(res.data);
+          //console.log(res.data);
           this.uclascore = res.data['score'];
           this.chartData.rows = [{type: 'score', value: this.uclascore}];
-          console.log(this.uclascore);
+          //console.log(this.uclascore);
           this.ucladialog = false;
-          this.scoresheet = true;
+          this.showref();
+          botui.message.bot({
+            loading: true,
+            delay: 1600,
+            content: 'Thank you for answering all the questions! Let’s see the result of your feelings of loneliness. '
+          }).then(() => {
+            botui.action.button({
+              action: [
+                { // show only one button
+                  text: 'Results',
+                  value: 'Results'
+                }
+              ]
+            }).then(() => {
+              //console.log(res);
+              //给服务器传一个打开时间
+              instance.post('/setrbtime', {
+                'id': that.$cookies.get("id"),
+                'sid': that.$cookies.get("sid"),
+                'rbtime': new Date().getTime(),
+              }).then(() => {
+                that.scoresheet = true;
+              });
+            });
+          });
         })
         //this.openended();
-      }
-    },
-    subuserinfo: function () {
-      if (this.$refs.personalinfo.validate()) {
-        instance.post('/person', {
-          'id': this.$cookies.get("id"),
-          'sid': this.$cookies.get("sid"),
-          'age': this.age,
-          'gender': this.gender,
-          'etime': new Date().getTime(),
-          'personality': this.personality,
-        }).then((response) => {
-          console.log(response.data);
-          this.surveydialog = false;
-          this.$router.replace('/about').catch((err) => {
-            console.log(err.message);
-          });
-        });
       } else {
-        alert("Some items are missing, please check again");
+        this.snackbartext = "Some items are required, please check again.";
+        this.snackbar = true;
       }
     },
-    check_zh: function(str){
-      const reg = /[\u4E00-\u9FA5\uF900-\uFA2D]/;
-      return reg.test(str);
+    // 显示dish board的提示语
+    showref: function () {
+      switch (this.items) {
+        case 3:
+          this.uclaref = 'Varma, P., Junge, M., Meaklim, H., & Jackson, M. L. (2021). Younger people are more vulnerable to stress, anxiety and depression during COVID-19 pandemic: A global cross-sectional survey. Progress in neuro-psychopharmacology & biological psychiatry, 109, 110236. https://doi.org/10.1016/j.pnpbp.2020.110236';
+          this.uclatips = 'A study on loneliness for adults from 63 countries (Varma et al. 2021) indicates that 47.2% of participants get more than 6 out of 9 for loneliness measure during the COVID-19 pandemic.';
+          break;
+        case 10:
+          this.uclaref = 'Hager, N. M., Judah, M. R., & Milam, A. L. (2020). Loneliness and Depression in College Students During the COVID-19 Pandemic: Boredom and Repetitive Negative Thinking as Mediators.';
+          this.uclatips = 'A study on loneliness for college students in America (Hager et al. 2020) indicates that participants\' mean score is 20.51 for loneliness measure during the COVID-19 pandemic.';
+          break;
+        case 20:
+          this.uclaref = 'Tso, I. F., & Park, S. (2020). Alarming levels of psychiatric symptoms and the role of loneliness during the COVID-19 epidemic: A case study of Hong Kong. Psychiatry research, 293, 113423.';
+          this.uclatips = 'A study on loneliness for adults in Hong Kong (Tso et al. 2020) indicates that a half of participants in the study get 50 or more out of 80 for loneliness measure during the COVID-19 pandemic.';
+          break;
+        default:
+          this.uclatips = '';
+          this.uclaref = '';
+      }
     },
-    randomans: function(){
-      const ans = ['Thanks for letting me know.','Okay',"I understand",'Ok.','Got it.',
-        'I see.','Thank you for your thoughtful input.','❤️','👌','Thank you very much for sharing.'];
+    //使用回车发送信息
+    enter_send: function (e) {
+      // 浏览器阻止默认事件兼容
+      if (e.preventDefault) e.preventDefault();
+      //阻止IE的默认操作
+      else window.event.value = false;
+      this.msgsend();
+    },
+    //end
+    end_tips: function () {
+      let that = this;
       botui.message.bot({
-        content: ans[Math.round(Math.random()*10)],
-        delay: 300,
+        type: 'html',
         loading: true,
-      })
+        delay: 2600,
+        content: "<ul><li>Try calling a friend, family member, health professional or counsellor to talk about your feelings. </li>" +
+            "<li>Join an online group or class that focuses on something you enjoy – that could be anything from an online exercise class, book club, etc. </li>" +
+            "<li>Consider going for short walks in public places (while keeping a two metre distance).</li>"+
+            "<li>You can also contact HKBU Counselling and Development Centre (https://sa.hkbu.edu.hk/cdc/) for help.</li>"
+      }).then(() => {
+            botui.message.bot({
+              loading: true,
+              delay: 3600,
+              content: "I am happy to talk to you. How are you feeling now?"
+            }).then(()=>{
+              botui.action.button({
+                action: [
+                  {
+                    text: 'Excited 😀 ',
+                    value: 'Excited'
+                  },
+                  {
+                    text: 'Happy 😊 ',
+                    value: 'Happy'
+                  },
+                  {
+                    text: 'Relaxed 🙂 ',
+                    value: 'Relaxed'
+                  },
+                  {
+                    text: 'Calm 😌 ',
+                    value: 'Calm'
+                  },
+                  {
+                    text: 'Sad ☹️',
+                    value: 'Sad'
+                  },
+                  {
+                    text: 'Depressed 😔 ',
+                    value: 'Depressed'
+                  },
+                  {
+                    text: 'Upset 😭 ',
+                    value: 'Upset'
+                  },
+                  {
+                    text: 'Nervous 😨 ',
+                    value: 'Nervous'
+                  },
+                ]
+              }).then((res)=>{
+                instance.post('/moodn', {
+                  'id': that.$cookies.get("id"),
+                  'sid': that.$cookies.get("sid"),
+                  'mood': res.value,
+                  'mtime': new Date().getTime(),
+                });
+                botui.message.bot({
+                  loading: true,
+                  delay: 1600,
+                  content: "Now, I would like to know your experiences of participating in this interview with the Percy bot."
+                }).then(() => {
+                  botui.action.button({
+                    action: [
+                      { // show only one button
+                        text: 'Fill in the final questionnaire',
+                        value: 'Fill in the final questionnaire'
+                      }
+                    ]
+                  }).then(() => {
+                    instance.post('/setftime', {
+                      'id': that.$cookies.get("id"),
+                      'sid': that.$cookies.get("sid"),
+                      'ftime': new Date().getTime(),
+                    }).then(() => {
+                      this.$router.replace('/interview').catch((err) => {
+                        console.log(err.message);
+                      });
+                    });
+                  })
+                })
+              })
+            })
+          }
+      )
     }
   }
 }
 </script>
 
-<style scoped>
+<style>
+.botui-actions-buttons-button {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 90% !important;
+  border-radius: 4px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-weight: 500;
+  letter-spacing: .0892857143em;
+  justify-content: center;
+  outline: 0;
+  position: relative;
+  text-decoration: none;
+  text-indent: .0892857143em;
+  text-transform: none;
+  transition-duration: .28s;
+  transition-property: box-shadow, transform, opacity;
+  transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+  user-select: none;
+  vertical-align: middle;
+  white-space: nowrap;
+  align-items: center;
+  border: thin solid;
+  color: #3f51b5;
+  caret-color: #3f51b5;
+  background-color: transparent;
+}
 
+.botui-message-content {
+  background-color: #E3F2FD;
+}
+
+.botui-message-content.human {
+  background-color: #1E88E5;
+}
+
+.botui-message-content.loading {
+  background-color: #E3F2FD;
+}
+
+.botui-message-content.html {
+  background-color: #E3F2FD;
+}
+
+.botui-actions-container {
+  margin-top: -20px;
+}
+
+.v-bottom-sheet.v-dialog {
+  overflow: auto !important;
+}
 </style>
